@@ -1,0 +1,67 @@
+---
+title: "MA677 Homework"
+author: "Haoyu Wang"
+date: "2/10/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+```
+
+## Get Value
+
+The null hypothesis is $H_0: p=0.6$; The alternative hypothesis is $H_1: p>0.6$
+
+The type I error is:
+$\alpha(p)= \sum_m^nb(n,p,k)$
+
+Thus, we have:
+```{r}
+alpha <- rep(0, 100)
+m1 <- rep(0, 100)
+n <- 100
+for (i in 0:40){
+  m1[i] = 60 + i
+  alpha[i] = pbinom(n,n,0.6) - pbinom(m1[i]-1,n,0.6)
+}
+typeIerror <- data.frame(cbind(m1, alpha))
+m_min <- typeIerror[which(typeIerror$alpha < 0.05), 1]
+m_min[1]
+```
+The type II error is:
+
+$\beta(p)=1-\alpha(p)=\sum_m^nb(n,p,k)$
+
+Thus, we have:
+```{r}
+beta <- rep(0,100)
+m2 <- rep(0,100)
+for (i in 1:20) {
+  m2[i] = 80 - i
+  beta[i] = 1-(pbinom(n,n,0.8)-pbinom(m2[i]-1,n,0.8))
+}
+typeIIerror <- data.frame(cbind(m2, beta))
+m_max <- typeIIerror[which(typeIIerror$beta < 0.05), 1]
+m_max[1]
+```
+## Get Plot
+```{r}
+m_1 <- 69
+m_2 <- 73
+p <- seq(0.4, 1, 0.01)
+curve1 <- cumsum(dbinom(m_1, n, p))
+curve2 <- cumsum(dbinom(m_2, n, p))
+data <- data.frame(p, curve1, curve2)
+ggplot(data) +
+  geom_rect(aes(xmin = 0.6, xmax = 0.8, ymin = 0.05, ymax = 0.95), alpha = 0.1) +
+  geom_line(aes(p, curve1), color = "pink") +
+  geom_line(aes(p, curve2), color = "lightblue") +
+  ggtitle("Power curve when m=69 and m=73") +
+  xlab("Probability") +
+  ylab("Power")
+```
+
